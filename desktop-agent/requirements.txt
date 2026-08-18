@@ -1,0 +1,35 @@
+opencv-python==4.10.0.84
+pygetwindow==0.0.9
+plyer==2.1.0
+pandas==2.2.3
+
+# Pose-landmark posture detection (posture_tracker.py). Pinned to a
+# version that still ships the classic mp.solutions.pose API with its
+# model bundled (later 0.10.3x+/1.x releases moved to the separate
+# Tasks API, which needs a manually-downloaded .task model file) --
+# this way `pip install -r requirements.txt` is still the only setup
+# step, same as every other dependency here. First run downloads a
+# small (~5-10MB) landmark model from Google's CDN and caches it
+# inside the installed mediapipe package; needs internet access once.
+mediapipe==0.10.14
+
+# Local HTTP API layer (api_server.py) that the HTML/CSS/JS frontend
+# talks to. Replaces the old Streamlit dashboard.py, which has been
+# removed -- the frontend now lives in frontend/ (see README.md).
+Flask==3.0.3
+
+# BUGFIX (posture messages not appearing): plyer's Windows notification
+# backend needs pywin32 at call time, but plyer does not declare it as
+# a hard dependency, so `pip install plyer` alone can leave real
+# notifications silently failing on Windows even though `import plyer`
+# succeeds. Only actually needed on Windows; harmless to list here
+# since pip's environment markers skip it elsewhere.
+pywin32==306; sys_platform == "win32"
+
+# Added for desktop_pet's cat overlay: loads/composites the PNG frame
+# sequences under desktop_pet/assets/cat/ for tkinter (tkinter's own
+# PhotoImage can decode PNGs but doesn't do real alpha compositing
+# against the color-key transparent window background). No new GUI
+# toolkit -- the overlay window itself is still plain tkinter, same as
+# companion_overlay.py.
+Pillow==10.4.0

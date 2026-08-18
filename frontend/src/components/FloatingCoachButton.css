@@ -1,0 +1,56 @@
+.floating-coach-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #ffffff, var(--accent-purple-light) 60%);
+  color: var(--accent-purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(124, 92, 255, 0.28), 0 2px 6px rgba(20, 24, 46, 0.08);
+  z-index: 80;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, bottom 0.2s ease, right 0.2s ease;
+}
+
+.floating-coach-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 12px 30px rgba(124, 92, 255, 0.36), 0 3px 8px rgba(20, 24, 46, 0.1);
+}
+
+.floating-coach-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.floating-coach-btn-glow {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124, 92, 255, 0.22), transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* On pages with time-critical primary controls (Live Session's Pause/
+   End buttons), sit slightly higher/inset so it never overlaps them. */
+.floating-coach-btn-compact {
+  bottom: 92px;
+  right: 22px;
+  width: 50px;
+  height: 50px;
+}
+
+@media (max-width: 640px) {
+  .floating-coach-btn {
+    bottom: 20px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
+  }
+  .floating-coach-btn-compact {
+    bottom: 84px;
+    right: 16px;
+  }
+}

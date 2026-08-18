@@ -1,0 +1,14 @@
+# Study Guard cloud backend -- deliberately minimal.
+#
+# api_server.py and everything it imports at module load time
+# (live_status, roadmap_store, roadmap_models, roadmap_generator,
+# roadmap_resources, runtime_settings, session_bridge, ai_coach,
+# scoring, logger, config) have NO dependency on opencv, mediapipe,
+# pygetwindow, pywin32, Pillow, or tkinter -- those only appear in
+# main.py and its desktop-only imports (window_tracker.py,
+# posture_tracker.py, companion_overlay.py, desktop_pet/,
+# media_control/, notifier.py), none of which this deployment ever
+# imports. See desktop-agent/requirements.txt for the full desktop set.
+
+Flask==3.0.3
+gunicorn==22.0.0

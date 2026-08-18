@@ -1,0 +1,46 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+venv/
+.venv/
+env/
+
+# --- Environment variables / secrets ---
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# --- Node / frontend build ---
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+
+# --- Study Guard runtime/local state (desktop agent) ---
+# All of these are generated at runtime by desktop-agent/main.py and
+# desktop-agent/api_server.py (see config.py's DATA_DIR) and contain
+# personal session data, webcam frames, or local-only settings -- none
+# of this belongs in source control, regardless of whether DATA_DIR
+# points inside the repo or elsewhere.
+desktop-agent/session_log.csv
+desktop-agent/live_state.json
+desktop-agent/live_frame.jpg
+desktop-agent/roadmap_data.json
+desktop-agent/runtime_settings.json
+desktop-agent/data/
+backend/data/
+*.jpg
+*.jpeg
+!frontend/public/**/*.jpg
+!frontend/public/**/*.jpeg
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,81 @@
+.focus-breakdown-card {
+  padding: 22px 22px 24px;
+  flex: 1;
+  min-width: 320px;
+}
+
+.focus-breakdown-body {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.focus-ring-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.focus-ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.focus-ring-percent {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 30px;
+  color: var(--text-primary);
+}
+
+.focus-ring-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.focus-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 160px;
+}
+
+.focus-legend li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.focus-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.focus-legend-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  flex: 1;
+}
+
+.focus-legend-value {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.focus-breakdown-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  max-width: 160px;
+}

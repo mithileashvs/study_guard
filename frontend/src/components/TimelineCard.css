@@ -1,0 +1,61 @@
+.timeline-card {
+  padding: 22px;
+  flex: 1.4;
+  min-width: 0;
+}
+
+.timeline-hours {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.timeline-track {
+  display: flex;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-gray-light);
+  margin-bottom: 20px;
+}
+
+.timeline-segment {
+  height: 100%;
+}
+
+.timeline-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.timeline-legend li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.timeline-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.timeline-legend-duration {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.timeline-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 8px 2px 2px;
+}

@@ -1,0 +1,14 @@
+.analytics-chart-card {
+  padding: 22px;
+}
+
+.analytics-chart-wrap {
+  margin-top: 4px;
+}
+
+.analytics-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 24px 4px;
+  text-align: center;
+}
