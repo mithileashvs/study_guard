@@ -277,13 +277,18 @@ COMPANION_POSITION = "bottom-right"
 # slide), not a fancy easing curve.
 COMPANION_ANIMATION_STEP_MS = 15
 
-# Temporary diagnostic logging for the overlay's lifecycle (create /
-# show / position / hide / destroy / error), on top of always-on
-# console prints. Written to session_log.csv when True so overlay
-# events show up alongside everything else while we're debugging why
-# it wasn't appearing. Safe to flip to False once it's confirmed
-# reliable -- console prints on errors stay on regardless.
-COMPANION_DEBUG = True
+# Diagnostic logging for the overlay's lifecycle (create / show /
+# position / hide / destroy / error), on top of always-on console
+# prints. Written to session_log.csv when True so overlay events show
+# up alongside everything else in the log -- useful while actively
+# debugging why the companion wasn't appearing, but noisy for normal
+# use (it adds an extra row to session_log.csv, and therefore to
+# scoring/history/analytics reads, on every overlay show/hide).
+# BUGFIX: this was left on (True) by default -- per this comment's own
+# original note it was meant to be temporary and "safe to flip to
+# False once confirmed reliable". Console prints on errors stay on
+# regardless of this setting.
+COMPANION_DEBUG = False
 
 # --- Cat desktop-pet intervention (final escalation step) ---
 # Reuses COMPANION_ENABLED above as the master on/off switch for the

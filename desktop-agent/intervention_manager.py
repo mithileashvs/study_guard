@@ -172,13 +172,8 @@ class InterventionManager:
         # on top of the notification cadence for the FIRST cat trigger.
         # If the cat has already fired once this episode and the user
         # is somehow still distracted, only re-trigger after cooldown.
-        print(f"[INTERVENTION] distraction detected, stage={self.notification_stage}")
-        print(f"[INTERVENTION] last warning already delivered")
         cat_trigger_condition = self.state != CAT_PHASE or elapsed >= CAT_COOLDOWN_SECONDS
-        print(f"[INTERVENTION] CAT_TRIGGER_CONDITION state={self.state} elapsed={elapsed:.1f}s "
-              f"cooldown={CAT_COOLDOWN_SECONDS}s -> {cat_trigger_condition}")
         if cat_trigger_condition:
-            print("[INTERVENTION] triggering cat intervention")
             self._trigger_cat(category)
 
     def _trigger_cat(self, category: str):
@@ -190,29 +185,14 @@ class InterventionManager:
         #      if the cat window specifically is unavailable/broken
         #   3) a bare desktop notification, if neither GUI works at all
         # Each rung only fires if the one above it didn't.
-        cat_controller_state = (
-            f"present={self.cat_controller is not None} "
-            f"available={getattr(self.cat_controller, 'available', None)} "
-            f"broken={self._cat_broken} companion_enabled={COMPANION_ENABLED}"
-        )
-        print(f"[CAT] CAT_CONTROLLER_STATE {cat_controller_state}")
-
         used_cat = False
         if COMPANION_ENABLED and self.cat_controller is not None and self.cat_controller.available and not self._cat_broken:
-            print("[CAT] start_intervention()")
             try:
                 used_cat = self.cat_controller.start_intervention(message)
-                print(f"[CAT] overlay requested -> start_intervention() returned {used_cat}")
-                if used_cat:
-                    print("[CAT] overlay shown")
             except Exception as e:
                 self._cat_broken = True
                 print(f"[CAT] EXCEPTION in start_intervention(): {e!r}")
                 log_event(self.session_id, "OVERLAY_FAILURE", category=category, value="cat_controller")
-        else:
-            print("[CAT] skipped -- cat_controller not usable (see CAT_CONTROLLER_STATE above)")
-
-        print(f"[INTERVENTION] CAT_TRIGGERED used_cat={used_cat}")
 
         if not used_cat:
             used_overlay = False

@@ -18,8 +18,6 @@ Run:
 Press Ctrl+C to stop -- shutdown is handled cleanly (camera released,
 threads stopped, session totals saved) via try/finally.
 """
-import desktop_pet.cat_animation as _ca_check
-print(f"[DEBUG] cat_animation loaded from: {_ca_check.__file__}")
 import threading
 import time
 import traceback
@@ -128,6 +126,13 @@ class SessionStats:
         self.distraction_active = False
         self.current_app_label = ""           # short label only, e.g. "VS Code" -- never the raw title
         self.calibrated = False
+        # BUGFIX: separate from `calibrated` (which only means
+        # "calibration succeeded"). This flags that posture_monitor has
+        # *finished* its calibration attempt either way (success,
+        # failure, or no webcam at all) -- see status_writer, which
+        # must not report the session as ACTIVE while calibration is
+        # still genuinely in progress.
+        self.calibration_done = False
         self.duration_seconds = None          # planned session length, set by SessionRuntime (Live Session UI)
 
     def tick(self, bucket: str):
@@ -286,6 +291,11 @@ def posture_monitor(stats: SessionStats):
         print("Webcam unavailable.\nPosture monitoring disabled.")
         log_event(stats.session_id, "WEBCAM_UNAVAILABLE")
         clear_frame()
+        # BUGFIX: without a webcam there is no calibration to wait for,
+        # but status_writer still needs to know calibration is "over"
+        # so the session can actually move to ACTIVE instead of being
+        # stuck showing Calibrating forever.
+        stats.calibration_done = True
         return
 
     tracker = PostureTracker()
@@ -321,6 +331,13 @@ def posture_monitor(stats: SessionStats):
         print("Could not calibrate (no person detected) -- posture checks will be limited.")
         log_event(stats.session_id, "CALIBRATION", value="failed")
         session_bridge.publish_state(calibration_progress=1.0)
+
+    # BUGFIX: mark calibration as finished (success or not) so
+    # status_writer knows it's now safe to report ACTIVE. Set here,
+    # not inside the `if calibrated:` branch above, so a failed
+    # calibration doesn't leave the session stuck on the Calibrating
+    # screen forever.
+    stats.calibration_done = True
 
     # Presence state machine: PRESENT / AWAY. RETURNED is a one-off
     # event logged at the moment of transition back, not a resting state.
@@ -420,7 +437,15 @@ def posture_monitor(stats: SessionStats):
                     if away_duration > AWAY_TIMEOUT:
                         study_start = time.time()
                         break_notified = False
-                stats.tick("focus" if posture_state == GOOD else "focus")
+                # NOTE: presence (not posture quality) is what this
+                # branch ticks -- SLIGHT_SLOUCH/SLOUCH still count as
+                # "focus" time here on purpose (the user is still
+                # present and working, just slouching); posture itself
+                # is scored separately below. This was previously
+                # written as a no-op ternary ("focus" if X else "focus")
+                # left over from an earlier edit -- simplified since
+                # both branches were always identical.
+                stats.tick("focus")
                 stats.presence_state = "PRESENT"
 
             # --- [POSTURE] diagnostic logging (state-change only, not
@@ -542,7 +567,20 @@ def status_writer(stats: SessionStats):
             paused=_pause_event.is_set(),
         )
 
-        if stats.duration_seconds is not None:
+        # BUGFIX: this used to publish phase=ACTIVE unconditionally
+        # here, every second, starting the instant this thread began --
+        # which is at the same moment posture_monitor's thread starts
+        # too. Since posture_monitor's own webcam calibration can take
+        # several seconds (POSTURE_CALIBRATION_SAMPLES at
+        # POSTURE_CHECK_INTERVAL cadence), this loop was winning the
+        # race almost every time: the Live Session page would flip from
+        # "Calibrating..." to the active session screen within about a
+        # second, well before calibration actually finished, because
+        # nothing here checked whether calibration was done. Gating on
+        # stats.calibration_done keeps phase at CALIBRATING (as set by
+        # SessionSupervisor/posture_monitor) until posture_monitor
+        # itself says it's finished -- success, failure, or no webcam.
+        if stats.duration_seconds is not None and stats.calibration_done:
             elapsed = stats.focus_seconds + stats.distraction_seconds + stats.away_seconds
             remaining = max(0, stats.duration_seconds - elapsed)
             session_bridge.publish_state(
