@@ -1,56 +1,46 @@
-.floating-coach-btn {
+.floating-assistant-btn {
   position: fixed;
-  bottom: 28px;
-  right: 28px;
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 32% 28%, #ffffff, var(--accent-purple-light) 60%);
-  color: var(--accent-purple);
+  bottom: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: #101522;
+  color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(124, 92, 255, 0.28), 0 2px 6px rgba(20, 24, 46, 0.08);
+  box-shadow: 0 4px 14px rgba(16, 21, 34, 0.25), 0 1px 3px rgba(16, 21, 34, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   z-index: 80;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, bottom 0.2s ease, right 0.2s ease;
+  transition: all 0.15s ease;
+  cursor: pointer;
 }
 
-.floating-coach-btn:hover {
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 12px 30px rgba(124, 92, 255, 0.36), 0 3px 8px rgba(20, 24, 46, 0.1);
+.floating-assistant-btn:hover {
+  background: var(--accent-purple);
+  border-color: var(--accent-purple);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(99, 91, 255, 0.35);
 }
 
-.floating-coach-btn:active {
-  transform: translateY(0) scale(0.97);
+.floating-assistant-btn:active {
+  transform: translateY(0);
 }
 
-.floating-coach-btn-glow {
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(124, 92, 255, 0.22), transparent 70%);
-  z-index: -1;
-  pointer-events: none;
-}
-
-/* On pages with time-critical primary controls (Live Session's Pause/
-   End buttons), sit slightly higher/inset so it never overlaps them. */
-.floating-coach-btn-compact {
-  bottom: 92px;
-  right: 22px;
-  width: 50px;
-  height: 50px;
+.floating-assistant-btn.live-offset {
+  bottom: 84px;
+  right: 20px;
 }
 
 @media (max-width: 640px) {
-  .floating-coach-btn {
-    bottom: 20px;
-    right: 20px;
-    width: 52px;
-    height: 52px;
+  .floating-assistant-btn {
+    bottom: 18px;
+    right: 18px;
+    width: 40px;
+    height: 40px;
   }
-  .floating-coach-btn-compact {
-    bottom: 84px;
-    right: 16px;
+  .floating-assistant-btn.live-offset {
+    bottom: 76px;
   }
 }

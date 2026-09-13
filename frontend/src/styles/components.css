@@ -1,8 +1,10 @@
+/* Base Card */
 .ui-card {
   background: var(--bg-card);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-card);
-  border: 1px solid #f1f2f8;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .card-header-row {
@@ -14,17 +16,101 @@
 
 .card-title {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 600;
+  font-size: 16px;
   color: var(--text-primary);
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
 }
 
 .card-icon-badge {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+/* Tone helper classes */
+.card-icon-badge.tone-purple {
+  background: var(--accent-purple-light);
+  color: var(--accent-purple);
+}
+.card-icon-badge.tone-green {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+.card-icon-badge.tone-blue {
+  background: var(--color-info-light);
+  color: var(--color-info);
+}
+.card-icon-badge.tone-red {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+.card-icon-badge.tone-gray {
+  background: var(--bg-card-subtle);
+  color: var(--text-muted);
+}
+
+/* Standard Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-purple);
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 13.5px;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-purple-hover);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 13.5px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-card-subtle);
+  border-color: #D1D5DB;
+}
+
+/* Quote/Banner banner pill */
+.quote-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+}
+.quote-banner svg {
+  color: var(--accent-purple);
 }

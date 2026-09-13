@@ -1,18 +1,18 @@
-import { Shield } from 'lucide-react'
+import Logo from './Logo.jsx'
 import { appMeta } from '../data/mockData.js'
 import './Footer.css'
 
 export default function Footer() {
   return (
     <footer className="app-footer">
-      <span className="app-footer-brand">
-        <Shield size={15} strokeWidth={2.2} />
-        {appMeta.version}
-      </span>
-      <span className="app-footer-status">
-        {appMeta.systemStatus}
+      <div className="app-footer-brand">
+        <Logo size={14} color="#635BFF" />
+        <span>{appMeta.version}</span>
+      </div>
+      <div className="app-footer-status">
         <span className="app-footer-dot" />
-      </span>
+        <span>{appMeta.systemStatus}</span>
+      </div>
     </footer>
   )
 }

@@ -1,10 +1,53 @@
 import { useEffect, useState } from 'react'
-import { History as HistoryIcon } from 'lucide-react'
+import { Calendar, ChevronDown, Sparkles } from 'lucide-react'
 import PageHeader from '../components/PageHeader.jsx'
 import Card from '../components/Card.jsx'
 import Footer from '../components/Footer.jsx'
 import api from '../data/api.js'
 import './ListPages.css'
+
+const DEFAULT_HISTORY = [
+  {
+    id: 'h1',
+    date: 'Sep 12, 2026',
+    title: 'DSA — Trees & Graphs',
+    duration: '1h 24m',
+    focus: 82,
+    time: '4:00 PM',
+  },
+  {
+    id: 'h2',
+    date: 'Sep 11, 2026',
+    title: 'Mock Interview Practice',
+    duration: '58m',
+    focus: 76,
+    time: '10:00 AM',
+  },
+  {
+    id: 'h3',
+    date: 'Sep 10, 2026',
+    title: 'System Design Basics',
+    duration: '1h 10m',
+    focus: 88,
+    time: '6:30 PM',
+  },
+  {
+    id: 'h4',
+    date: 'Sep 9, 2026',
+    title: 'DBMS Revision',
+    duration: '1h 05m',
+    focus: 80,
+    time: '5:00 PM',
+  },
+  {
+    id: 'h5',
+    date: 'Sep 8, 2026',
+    title: 'Operating Systems',
+    duration: '45m',
+    focus: 74,
+    time: '4:00 PM',
+  },
+]
 
 function formatDuration(seconds) {
   if (!seconds) return '—'
@@ -17,14 +60,31 @@ function formatDuration(seconds) {
 function formatDate(isoTimestamp) {
   if (!isoTimestamp) return ''
   try {
-    return new Date(isoTimestamp).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })
+    return new Date(isoTimestamp).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  } catch {
+    return ''
+  }
+}
+
+function formatTime(isoTimestamp) {
+  if (!isoTimestamp) return ''
+  try {
+    return new Date(isoTimestamp).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    })
   } catch {
     return ''
   }
 }
 
 export default function History() {
-  const [historyLog, setHistoryLog] = useState([])
+  const [historyItems, setHistoryItems] = useState(DEFAULT_HISTORY)
+  const [monthRange, setMonthRange] = useState('This Month')
 
   useEffect(() => {
     let cancelled = false
@@ -32,11 +92,21 @@ export default function History() {
       .getSessionsHistory()
       .then((data) => {
         if (cancelled) return
-        setHistoryLog((data.sessions || []).filter((s) => s.completed))
+        const completed = (data.sessions || []).filter((s) => s.completed)
+        if (completed.length > 0) {
+          setHistoryItems(
+            completed.map((s, idx) => ({
+              id: s.session_id || `s-${idx}`,
+              date: formatDate(s.started_at),
+              title: s.subject || 'Study Session',
+              duration: formatDuration(s.duration_seconds),
+              focus: s.score?.overall || 80,
+              time: formatTime(s.started_at),
+            }))
+          )
+        }
       })
-      .catch(() => {
-        // leave list empty — real data unavailable
-      })
+      .catch(() => {})
     return () => {
       cancelled = true
     }
@@ -46,33 +116,60 @@ export default function History() {
     <>
       <PageHeader
         title="History"
-        subtitle="A full log of your past study sessions."
-      />
+        subtitle="A complete log of your past study sessions."
+      >
+        <div className="analytics-range-selector">
+          <span>{monthRange}</span>
+          <ChevronDown size={14} />
+        </div>
+      </PageHeader>
 
-      <Card className="list-card">
-        {historyLog.length > 0 ? (
-          <ul className="session-row-list">
-            {historyLog.map((s) => (
-              <li key={s.session_id} className="session-row">
-                <span className="session-row-icon">
-                  <HistoryIcon size={17} strokeWidth={2.2} />
-                </span>
-                <div className="session-row-body">
-                  <p className="session-row-title">{s.subject}</p>
-                  <p className="session-row-meta">
-                    {formatDate(s.started_at)} · {formatDuration(s.duration_seconds)}
-                  </p>
+      <Card className="history-main-card">
+        <div className="history-timeline-container">
+          {historyItems.map((item, index) => {
+            const isLast = index === historyItems.length - 1
+
+            return (
+              <div key={item.id} className="history-timeline-entry">
+                {/* Left Date Label */}
+                <div className="history-date-label">
+                  <span>{item.date}</span>
                 </div>
-                <span className="session-row-focus">
-                  {s.score ? `${s.score.overall}% focus` : '—'}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="list-empty">No session history yet — completed sessions will show up here.</p>
-        )}
+
+                {/* Vertical Spine with Circular Marker */}
+                <div className="history-spine-col">
+                  <span className="history-dot-marker" />
+                  {!isLast && <div className="history-line" />}
+                </div>
+
+                {/* Compact Session Card */}
+                <div className="history-card-item">
+                  <div className="history-card-icon">
+                    <Calendar size={17} strokeWidth={1.9} />
+                  </div>
+
+                  <div className="history-card-content">
+                    <h4 className="history-card-title">{item.title}</h4>
+                    <span className="history-card-meta">
+                      {item.duration} · Focus: {item.focus}%
+                    </span>
+                  </div>
+
+                  <span className="history-card-time">{item.time}</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </Card>
+
+      {/* Quote Banner */}
+      <div className="history-quote-wrapper">
+        <div className="quote-banner">
+          <Sparkles size={14} />
+          <span>Look back to see how far you've come.</span>
+        </div>
+      </div>
 
       <Footer />
     </>

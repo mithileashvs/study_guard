@@ -1,94 +1,130 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { NavLink } from 'react-router-dom'
 import {
-  Shield,
-  Home,
-  Target,
+  LayoutDashboard,
+  Route,
   Video,
-  CalendarDays,
+  Calendar,
   BarChart3,
-  History as HistoryIcon,
+  Clock,
+  Sparkles,
   Settings as SettingsIcon,
-  ChevronRight,
+  Menu,
+  X,
 } from 'lucide-react'
-import { activeCompanion } from '../data/mockData.js'
+import Logo from './Logo.jsx'
 import './Sidebar.css'
 
-const navItems = [
-  { to: '/', label: 'Overview', icon: Home, tone: 'purple' },
-  { to: '/roadmap', label: 'Roadmap', icon: Target, tone: 'red' },
-  { to: '/live-session', label: 'Live Session', icon: Video, tone: 'purple' },
-  { to: '/sessions', label: 'Sessions', icon: CalendarDays, tone: 'blue' },
-  { to: '/analytics', label: 'Analytics', icon: BarChart3, tone: 'green' },
-  { to: '/history', label: 'History', icon: HistoryIcon, tone: 'purple' },
+const mainNav = [
+  { to: '/', label: 'Overview', icon: LayoutDashboard },
+  { to: '/roadmap', label: 'Roadmap', icon: Route },
+  { to: '/live-session', label: 'Live Session', icon: Video },
+  { to: '/sessions', label: 'Sessions', icon: Calendar },
+  { to: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/history', label: 'History', icon: Clock },
 ]
 
 export default function Sidebar() {
-  const navigate = useNavigate()
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  const closeMobile = () => setMobileOpen(false)
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">
-        <div className="sidebar-brand-icon">
-          <Shield size={20} strokeWidth={2.4} />
+    <>
+      {/* Mobile Header */}
+      <header className="mobile-header">
+        <div className="mobile-brand">
+          <Logo size={22} color="#FFFFFF" />
+          <span className="mobile-title">Study Guard</span>
         </div>
-        <div>
-          <p className="sidebar-brand-title">Study Guard</p>
-          <p className="sidebar-brand-subtitle">Your focus companion</p>
-        </div>
-      </div>
-
-      <nav className="sidebar-nav">
-        <ul>
-          {navItems.map(({ to, label, icon: Icon, tone }) => (
-            <li key={to}>
-              <NavLink
-                to={to}
-                end={to === '/'}
-                className={({ isActive }) =>
-                  'sidebar-nav-item' + (isActive ? ' active' : '')
-                }
-              >
-                <span className={`sidebar-nav-icon tone-${tone}`}>
-                  <Icon size={18} strokeWidth={2.2} />
-                </span>
-                <span className="sidebar-nav-label">{label}</span>
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      <div className="sidebar-divider" />
-
-      <div className="sidebar-companion-section">
-        <p className="sidebar-section-title">Study Companion</p>
         <button
-          className="companion-card"
-          onClick={() => navigate('/companion')}
-          aria-label={`Open ${activeCompanion.name} companion page`}
+          className="mobile-menu-btn"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
         >
-          <span className="companion-emoji" aria-hidden="true">
-            {activeCompanion.emoji}
-          </span>
-          <span className="companion-info">
-            <span className="companion-name">{activeCompanion.name}</span>
-            <span className="companion-tagline">{activeCompanion.tagline}</span>
-          </span>
-          <ChevronRight size={18} className="companion-chevron" />
+          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
-      </div>
+      </header>
 
-      <div className="sidebar-footer">
-        <NavLink
-          to="/settings"
-          className={({ isActive }) =>
-            'sidebar-settings-item' + (isActive ? ' active' : '')
-          }
-        >
-          <SettingsIcon size={18} strokeWidth={2.2} />
-          <span>Settings</span>
-        </NavLink>
-      </div>
-    </aside>
+      {/* Backdrop for mobile */}
+      {mobileOpen && <div className="sidebar-backdrop" onClick={closeMobile} />}
+
+      <aside className={`sidebar${mobileOpen ? ' open' : ''}`}>
+        {/* Brand Header */}
+        <div className="sidebar-brand">
+          <div className="sidebar-logo-wrap">
+            <Logo size={22} color="#FFFFFF" />
+          </div>
+          <div className="sidebar-brand-text">
+            <span className="sidebar-brand-title">Study Guard</span>
+            <span className="sidebar-brand-subtitle">Focus. Learn. Grow.</span>
+          </div>
+        </div>
+
+        {/* Main Navigation */}
+        <nav className="sidebar-nav">
+          <ul>
+            {mainNav.map(({ to, label, icon: Icon }) => (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  end={to === '/'}
+                  onClick={closeMobile}
+                  className={({ isActive }) =>
+                    'sidebar-nav-item' + (isActive ? ' active' : '')
+                  }
+                >
+                  <Icon size={17} strokeWidth={1.9} className="nav-icon" />
+                  <span className="nav-label">{label}</span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tools Section */}
+          <div className="sidebar-section">
+            <p className="sidebar-section-title">TOOLS</p>
+            <ul>
+              <li>
+                <NavLink
+                  to="/companion"
+                  onClick={closeMobile}
+                  className={({ isActive }) =>
+                    'sidebar-nav-item' + (isActive ? ' active' : '')
+                  }
+                >
+                  <Sparkles size={17} strokeWidth={1.9} className="nav-icon" />
+                  <span className="nav-label">Study Companion</span>
+                </NavLink>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        {/* Footer Area: Settings & Profile */}
+        <div className="sidebar-footer">
+          <NavLink
+            to="/settings"
+            onClick={closeMobile}
+            className={({ isActive }) =>
+              'sidebar-nav-item settings-item' + (isActive ? ' active' : '')
+            }
+          >
+            <SettingsIcon size={17} strokeWidth={1.9} className="nav-icon" />
+            <span className="nav-label">Settings</span>
+          </NavLink>
+
+          <div className="sidebar-user-profile">
+            <div className="user-avatar" aria-hidden="true">
+              M
+            </div>
+            <div className="user-meta">
+              <span className="user-name">Mithileash</span>
+              <span className="user-status">Stay consistent.</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </>
   )
 }

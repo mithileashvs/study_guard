@@ -1,159 +1,307 @@
-.list-card {
-  padding: 10px 22px;
+/* Shared styles for Sessions & History pages */
+.sessions-container-card,
+.history-main-card {
+  padding: 24px 28px;
+  background: #FFFFFF;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card);
 }
 
-.row-2col-stack {
+/* ==================================================
+   SESSIONS PAGE
+   ================================================== */
+.sessions-tabs-bar {
   display: flex;
-  gap: 22px;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  gap: 24px;
+  border-bottom: 1px solid var(--border-muted);
+  margin-bottom: 20px;
 }
 
-.row-2col-stack > * {
-  flex: 1;
-  min-width: 320px;
-}
-
-/* Roadmap */
-.milestone-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.milestone-item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 4px;
-  border-bottom: 1px solid #f2f3f8;
-}
-
-.milestone-item:last-child {
-  border-bottom: none;
-}
-
-.milestone-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  z-index: 1;
-}
-
-.milestone-icon.tone-green { background: var(--color-green-light); color: var(--color-green); }
-.milestone-icon.tone-purple { background: var(--accent-purple-light); color: var(--accent-purple-dark); }
-.milestone-icon.tone-gray { background: var(--color-gray-light); color: var(--text-muted); }
-
-.milestone-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.milestone-title {
-  font-weight: 700;
-  font-size: 14.5px;
-  color: var(--text-primary);
-}
-
-.milestone-detail {
-  font-size: 12.5px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.milestone-status {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 5px 12px;
-  border-radius: 999px;
-  flex-shrink: 0;
-}
-
-.milestone-status.tone-green { background: var(--color-green-light); color: var(--color-green); }
-.milestone-status.tone-purple { background: var(--accent-purple-light); color: var(--accent-purple-dark); }
-.milestone-status.tone-gray { background: var(--color-gray-light); color: var(--text-muted); }
-
-/* Sessions / History */
-.session-row-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.session-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 4px;
-  border-bottom: 1px solid #f2f3f8;
-}
-
-.session-row:last-child {
-  border-bottom: none;
-}
-
-.session-row-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: var(--accent-purple-light);
-  color: var(--accent-purple-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.session-row-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.session-row-title {
-  font-weight: 700;
-  font-size: 14.5px;
-  color: var(--text-primary);
-}
-
-.session-row-meta {
-  font-size: 12.5px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.session-row-focus {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-green);
-  flex-shrink: 0;
-}
-
-.session-row-duration {
-  font-size: 13px;
-  font-weight: 600;
+.session-tab-btn {
+  padding: 8px 4px 12px;
+  font-size: 14px;
+  font-weight: 500;
   color: var(--text-secondary);
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.session-tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.session-tab-btn.active {
+  color: var(--accent-purple);
+  font-weight: 600;
+}
+
+.session-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-purple);
+  border-radius: var(--radius-pill);
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.session-compact-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: #FAFAFB;
+  border: 1px solid var(--border-subtle);
+  transition: all 0.15s ease;
+}
+
+.session-compact-row:hover {
+  background: #FFFFFF;
+  border-color: #D1D5DB;
+  box-shadow: var(--shadow-xs);
+}
+
+.session-calendar-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--accent-purple-light);
+  color: var(--accent-purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  min-width: 68px;
+}
+
+.session-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.session-item-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.session-item-date {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.session-right-col {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.session-item-duration {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  min-width: 60px;
   text-align: right;
 }
 
-.section-title-row {
-  margin-bottom: 4px;
+.session-play-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-purple-light);
+  color: var(--accent-purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
 }
 
-.section-title {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 16px;
+.session-play-btn:hover {
+  background: var(--accent-purple);
+  color: #FFFFFF;
+}
+
+.session-more-btn {
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.session-more-btn:hover {
   color: var(--text-primary);
-  margin-bottom: 14px;
 }
 
-.list-empty {
+.session-item-focus {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+/* Empty State */
+.empty-state-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  text-align: center;
+}
+
+.empty-state-icon {
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.empty-state-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.empty-state-sub {
   font-size: 13px;
   color: var(--text-muted);
-  padding: 4px 2px;
+  max-width: 340px;
+  margin-top: 4px;
+}
+
+/* ==================================================
+   HISTORY PAGE
+   ================================================== */
+.history-timeline-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.history-timeline-entry {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+}
+
+.history-date-label {
+  width: 100px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.history-spine-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 20px;
+  flex-shrink: 0;
+  position: relative;
+  align-self: stretch;
+}
+
+.history-dot-marker {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-purple);
+  margin-top: 20px;
+  z-index: 2;
+}
+
+.history-line {
+  position: absolute;
+  top: 26px;
+  bottom: -20px;
+  width: 1.5px;
+  background: #E5E7EB;
+  z-index: 1;
+}
+
+.history-card-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  margin: 6px 0;
+  border-radius: var(--radius-lg);
+  background: #FAFAFB;
+  border: 1px solid var(--border-subtle);
+  transition: all 0.15s ease;
+}
+
+.history-card-item:hover {
+  background: #FFFFFF;
+  border-color: #D1D5DB;
+  box-shadow: var(--shadow-xs);
+}
+
+.history-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--accent-purple-light);
+  color: var(--accent-purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.history-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.history-card-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--text-primary);
+}
+
+.history-card-meta {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.history-card-time {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.history-quote-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .history-date-label {
+    width: auto;
+    font-size: 12px;
+  }
+  .history-timeline-entry {
+    gap: 12px;
+  }
 }

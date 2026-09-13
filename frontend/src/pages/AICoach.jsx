@@ -1,15 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bot, Send, Zap, Flame, BookOpen, Frown, Timer, BarChart3 } from 'lucide-react'
+import { Bot, Send, Zap, Flame, BookOpen, Frown, Timer, BarChart3, Sparkles } from 'lucide-react'
 import PageHeader from '../components/PageHeader.jsx'
 import Card from '../components/Card.jsx'
 import Footer from '../components/Footer.jsx'
 import api from '../data/api.js'
 import './AICoach.css'
 
-// Mirrors ai_coach.py's QUICK_ACTIONS exactly (key, label) -- the icon
-// is chosen locally since the backend only sends an emoji glyph, and
-// lucide icons fit this app's existing visual language better than
-// rendering raw emoji in a chip.
 const QUICK_ACTIONS = [
   { key: 'focus', label: 'Help me focus', icon: Zap },
   { key: 'motivate', label: 'Motivate me', icon: Flame },
@@ -28,15 +24,21 @@ export default function AICoach() {
 
   useEffect(() => {
     let cancelled = false
-    api.coachGreeting()
+    api
+      .coachGreeting()
       .then((data) => {
         if (!cancelled) setMessages([{ from: 'coach', text: data.greeting }])
       })
       .catch(() => {
-        if (!cancelled) setMessages([{ from: 'coach', text: "Hi! I'm your study coach. How can I help?" }])
+        if (!cancelled)
+          setMessages([{ from: 'coach', text: "Hello! I am your AI Study Coach. How can I assist you today?" }])
       })
-      .finally(() => { if (!cancelled) setLoadingGreeting(false) })
-    return () => { cancelled = true }
+      .finally(() => {
+        if (!cancelled) setLoadingGreeting(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -54,7 +56,10 @@ export default function AICoach() {
       const data = await api.coachMessage(text ?? '', actionKey)
       setMessages((prev) => [...prev, { from: 'coach', text: data.reply }])
     } catch {
-      setMessages((prev) => [...prev, { from: 'coach', text: "Sorry, I couldn't reach the coach service just now." }])
+      setMessages((prev) => [
+        ...prev,
+        { from: 'coach', text: "Sorry, I couldn't reach the coach service just now." },
+      ])
     } finally {
       setSending(false)
     }
@@ -67,14 +72,21 @@ export default function AICoach() {
 
   return (
     <>
-      <PageHeader title="AI Coach" subtitle="Your personal study companion — ask anything." />
+      <PageHeader
+        title="AI Coach"
+        subtitle="Your intelligent focus and learning partner — ask anything."
+      />
 
       <Card className="coach-card">
         <div className="coach-thread" ref={scrollRef}>
-          {loadingGreeting && <div className="coach-bubble coach-bubble-coach coach-bubble-loading">…</div>}
+          {loadingGreeting && (
+            <div className="coach-bubble coach-bubble-coach coach-bubble-loading">…</div>
+          )}
           {messages.map((m, i) => (
             <div key={i} className={`coach-bubble coach-bubble-${m.from}`}>
-              {m.from === 'coach' && <Bot size={15} strokeWidth={2.4} className="coach-bubble-icon" />}
+              {m.from === 'coach' && (
+                <Sparkles size={14} strokeWidth={2} className="coach-bubble-icon" />
+              )}
               <span>{m.text}</span>
             </div>
           ))}
@@ -84,12 +96,13 @@ export default function AICoach() {
           {QUICK_ACTIONS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
+              type="button"
               className="coach-quick-action-btn"
               onClick={() => send(undefined, key)}
               disabled={sending}
             >
-              <Icon size={14} strokeWidth={2.3} />
-              {label}
+              <Icon size={13} strokeWidth={2} />
+              <span>{label}</span>
             </button>
           ))}
         </div>
@@ -102,8 +115,13 @@ export default function AICoach() {
             onChange={(e) => setInput(e.target.value)}
             disabled={sending}
           />
-          <button type="submit" className="coach-send-btn" disabled={sending || !input.trim()} aria-label="Send">
-            <Send size={16} strokeWidth={2.4} />
+          <button
+            type="submit"
+            className="coach-send-btn"
+            disabled={sending || !input.trim()}
+            aria-label="Send"
+          >
+            <Send size={15} />
           </button>
         </form>
       </Card>

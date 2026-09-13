@@ -1,450 +1,450 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Flag, Trophy, Check, Lock, Circle, X, Loader2, Sparkles, Search } from 'lucide-react'
+import { Sparkles, Check, X, Loader2, BookOpen, ChevronRight, ExternalLink } from 'lucide-react'
 import PageHeader from '../components/PageHeader.jsx'
 import Card from '../components/Card.jsx'
 import Footer from '../components/Footer.jsx'
-import { roadmapGenerationSteps } from '../data/roadmapGenerator.js'
-import { getMoreResources } from '../data/roadmapResources.js'
+import { roadmapJourney } from '../data/mockData.js'
+import { roadmapGenerationSteps, generateRoadmapFromPortion } from '../data/roadmapGenerator.js'
 import adaptRoadmap from '../data/roadmapAdapter.js'
 import api from '../data/api.js'
 import './Roadmap.css'
 
-const statusBadgeLabel = {
-  completed: 'Completed',
-  current: 'In Progress',
-  locked: 'Locked',
+// Default structured milestones if none on backend yet
+const DEFAULT_ROADMAP = {
+  title: 'DSA Interview Preparation',
+  overallProgress: 42,
+  durationWeeks: '12 weeks',
+  milestones: [
+    {
+      id: 'm1',
+      number: 1,
+      title: 'Arrays & Hashing',
+      topicsCount: 8,
+      duration: '3h 20m',
+      progress: 100,
+      status: 'completed',
+      actionLabel: 'Review',
+      topics: [
+        { name: 'Two Pointers & Sliding Window', done: true },
+        { name: 'Prefix Sums & Frequency Arrays', done: true },
+        { name: 'Hash Maps & Hash Sets Lookup', done: true },
+      ],
+      resources: [
+        { title: 'NeetCode 150 — Arrays & Hashing', level: 'Video & Practice' },
+        { title: 'LeetCode Explore: Array 101', level: 'Interactive Tutorial' },
+      ],
+    },
+    {
+      id: 'm2',
+      number: 2,
+      title: 'Linked Lists',
+      topicsCount: 6,
+      duration: '2h 10m',
+      progress: 72,
+      status: 'current',
+      actionLabel: 'Continue',
+      topics: [
+        { name: 'Singly & Doubly Linked List Traversal', done: true },
+        { name: 'Fast & Slow Pointers (Cycle Detection)', done: true },
+        { name: 'In-place List Reversal', done: false },
+      ],
+      resources: [
+        { title: 'Visualgo Linked List Visualizer', level: 'Visual Demonstration' },
+        { title: 'LeetCode: Reverse Linked List II', level: 'Medium Problem' },
+      ],
+    },
+    {
+      id: 'm3',
+      number: 3,
+      title: 'Stacks and Queues',
+      topicsCount: 5,
+      duration: '1h 30m',
+      progress: 20,
+      status: 'in-progress',
+      actionLabel: 'Start',
+      topics: [
+        { name: 'Stack Operations & Balanced Parentheses', done: true },
+        { name: 'Monotonic Stack Fundamentals', done: false },
+        { name: 'Queue & Double-Ended Queue (Deque)', done: false },
+      ],
+      resources: [
+        { title: 'Monotonic Stack Deep Dive', level: 'Written Guide' },
+      ],
+    },
+    {
+      id: 'm4',
+      number: 4,
+      title: 'Trees',
+      topicsCount: 12,
+      duration: 'Not started',
+      progress: 0,
+      status: 'not-started',
+      actionLabel: 'Start',
+      topics: [
+        { name: 'Binary Trees & Traversals (Inorder, Preorder, Postorder)', done: false },
+        { name: 'Binary Search Tree (BST) Properties & Search', done: false },
+        { name: 'Breadth-First Search (Level Order)', done: false },
+      ],
+      resources: [
+        { title: 'Tree Visualizations by CS50', level: 'Video Lecture' },
+      ],
+    },
+    {
+      id: 'm5',
+      number: 5,
+      title: 'Graphs',
+      topicsCount: 10,
+      duration: 'Not started',
+      progress: 0,
+      status: 'not-started',
+      actionLabel: 'Start',
+      topics: [
+        { name: 'Graph Representations (Adjacency Matrix vs List)', done: false },
+        { name: 'DFS & BFS on Directed and Undirected Graphs', done: false },
+        { name: 'Topological Sort (Kahn’s Algorithm)', done: false },
+      ],
+      resources: [
+        { title: 'Graph Theory Algorithms Guide', level: 'Comprehensive Guide' },
+      ],
+    },
+  ],
 }
 
-// Shown only until a real roadmap is fetched from the backend (or
-// while none has been generated yet) -- an empty/sample state, never
-// mixed with real data once a backend roadmap exists.
-const SAMPLE_ROADMAP = {
-  title: 'No roadmap yet',
-  overallProgress: 0,
-  completedMilestones: 0,
-  totalMilestones: 0,
-  inProgressMilestones: 0,
-  remainingMilestones: 0,
-  estimatedDays: 0,
-  milestones: [],
-}
-
-function MilestoneNode({ status }) {
-  if (status === 'completed') return <Check size={18} strokeWidth={2.6} />
-  if (status === 'locked') return <Lock size={16} strokeWidth={2.2} />
-  return <span className="roadmap-current-dot" />
-}
-
-/* Recommended resources list, reused on the "current progress" card and inside
-   the milestone detail modal. "Find More Resources" is a mock async step today,
-   structured so it can call a real search/AI backend later. */
-function ResourceList({ milestone, roadmapId, subtitle }) {
-  const [extra, setExtra] = useState([])
-  const [finding, setFinding] = useState(false)
-
+function MilestoneDetailModal({ milestone, onClose }) {
   useEffect(() => {
-    setExtra([])
-    setFinding(false)
-  }, [milestone.id])
-
-  const findMore = () => {
-    setFinding(true)
-    // If this milestone came from a real backend roadmap, ask
-    // roadmap_resources.py (via roadmap_store.get_or_refresh_resources)
-    // for a fresh lookup -- no duplicate resource-finding logic here.
-    // Falls back to the local mock list only when there's no backend
-    // roadmap to ask (the built-in sample roadmap).
-    if (roadmapId) {
-      api
-        .getTopicResources(roadmapId, milestone.id, true)
-        .then((data) => {
-          const flat = []
-          Object.values(data.resources || {}).forEach((items) => {
-            items.forEach((r) => flat.push({ icon: '🔗', title: r.title, level: r.difficulty || r.source || '' }))
-          })
-          setExtra(flat)
-          setFinding(false)
-        })
-        .catch(() => {
-          setExtra(getMoreResources(milestone.title))
-          setFinding(false)
-        })
-    } else {
-      window.setTimeout(() => {
-        setExtra(getMoreResources(milestone.title))
-        setFinding(false)
-      }, 900)
-    }
-  }
-
-  const allResources = [...milestone.resources, ...extra]
-
-  return (
-    <div className="roadmap-resources">
-      {subtitle && <p className="roadmap-resources-sub">{subtitle}</p>}
-      <ul className="roadmap-resource-list">
-        {allResources.map((r, i) => (
-          <li key={`${r.title}-${i}`} className="roadmap-resource-item">
-            <span className="roadmap-resource-icon">{r.icon}</span>
-            <div className="roadmap-resource-body">
-              <p className="roadmap-resource-name">{r.title}</p>
-              <p className="roadmap-resource-level">{r.level}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-      {finding ? (
-        <p className="roadmap-resources-finding">
-          <Loader2 size={14} strokeWidth={2.4} className="spin" />
-          Finding resources for: {milestone.title}
-        </p>
-      ) : (
-        <button className="roadmap-resources-more" onClick={findMore}>
-          <Search size={14} strokeWidth={2.2} />
-          Find More Resources
-        </button>
-      )}
-    </div>
-  )
-}
-
-function MilestoneStop({ milestone, side, onOpen }) {
-  const ref = useRef(null)
-  const [inView, setInView] = useState(false)
-
-  useEffect(() => {
-    const node = ref.current
-    if (!node) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true)
-          observer.disconnect()
-        }
-      },
-      { threshold: 0.2, rootMargin: '0px 0px -60px 0px' }
-    )
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [])
-
-  return (
-    <div
-      ref={ref}
-      className={`roadmap-stop status-${milestone.status} side-${side}${inView ? ' in-view' : ''}`}
-    >
-      <div className="roadmap-stop-node-wrap">
-        <div className="roadmap-stop-node">
-          <MilestoneNode status={milestone.status} />
-        </div>
-        {milestone.status === 'current' && (
-          <span className="roadmap-here-tag">✦ YOU ARE HERE ✦</span>
-        )}
-      </div>
-
-      <div className="roadmap-stop-card" onClick={() => onOpen(milestone)}>
-        <p className="roadmap-stop-mile">{milestone.mile}</p>
-        <p className="roadmap-stop-title">{milestone.title}</p>
-        <p className="roadmap-stop-percent">{milestone.progress}% Complete</p>
-        <p className="roadmap-stop-topics">
-          {milestone.completedTopics} / {milestone.totalTopics} topics
-        </p>
-        <span className="roadmap-stop-badge">{statusBadgeLabel[milestone.status]}</span>
-      </div>
-    </div>
-  )
-}
-
-function MilestoneModal({ milestone, roadmapId, onClose }) {
-  useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    const handleEsc = (e) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
   }, [onClose])
 
   return (
-    <div className="roadmap-modal-overlay" onClick={onClose}>
+    <div className="roadmap-modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
       <div className="roadmap-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="roadmap-modal-close" onClick={onClose} aria-label="Close">
-          <X size={16} strokeWidth={2.4} />
-        </button>
-
-        <p className="roadmap-modal-mile">{milestone.mile}</p>
-        <h2 className="roadmap-modal-title">{milestone.title}</h2>
-        <p className="roadmap-modal-percent">{milestone.progress}% Complete</p>
-        <div className="roadmap-modal-bar">
-          <div className="roadmap-modal-bar-fill" style={{ width: `${milestone.progress}%` }} />
-        </div>
-        <p className="roadmap-modal-topics-count">
-          {milestone.completedTopics} / {milestone.totalTopics} topics completed
-        </p>
-
-        <p className="roadmap-modal-section-title">Topics</p>
-        <ul className="roadmap-modal-topic-list">
-          {milestone.topics.map((t) => (
-            <li key={t.name} className={`roadmap-modal-topic${t.done ? ' done' : ''}`}>
-              {t.done ? (
-                <Check size={15} strokeWidth={2.4} className="topic-icon" />
-              ) : (
-                <Circle size={15} strokeWidth={2.2} className="topic-icon" />
-              )}
-              {t.name}
-            </li>
-          ))}
-        </ul>
-
-        <p className="roadmap-modal-section-title">Recommended Resources</p>
-        <ResourceList milestone={milestone} roadmapId={roadmapId} />
-
-        <div className="roadmap-modal-meta">
-          <div className="roadmap-modal-meta-item">
-            <p>Study Time</p>
-            <p>{milestone.studyTime}</p>
+        <div className="modal-top-row">
+          <div>
+            <span className="modal-milestone-number">MILESTONE {milestone.number}</span>
+            <h2 className="modal-milestone-title">{milestone.title}</h2>
           </div>
-          <div className="roadmap-modal-meta-item">
-            <p>Status</p>
-            <p>{statusBadgeLabel[milestone.status]}</p>
-          </div>
+          <button className="modal-close-btn" onClick={onClose} aria-label="Close">
+            <X size={18} />
+          </button>
         </div>
 
-        <button className="roadmap-modal-cta" onClick={onClose}>
-          Continue Learning
-        </button>
+        <div className="modal-progress-strip">
+          <div className="modal-progress-bar">
+            <div
+              className="modal-progress-fill"
+              style={{ width: `${milestone.progress}%` }}
+            />
+          </div>
+          <span className="modal-progress-text">{milestone.progress}% complete</span>
+        </div>
+
+        <div className="modal-section">
+          <h4 className="modal-section-title">Topics in this milestone</h4>
+          <ul className="modal-topics-list">
+            {milestone.topics?.map((t, idx) => (
+              <li key={idx} className={`modal-topic-item${t.done ? ' done' : ''}`}>
+                <span className="topic-checkbox">
+                  {t.done && <Check size={12} strokeWidth={2.8} />}
+                </span>
+                <span className="topic-name">{t.name}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {milestone.resources?.length > 0 && (
+          <div className="modal-section">
+            <h4 className="modal-section-title">Recommended Resources</h4>
+            <ul className="modal-resources-list">
+              {milestone.resources.map((r, idx) => (
+                <li key={idx} className="modal-resource-item">
+                  <BookOpen size={15} className="resource-icon" />
+                  <div className="resource-body">
+                    <span className="resource-title">{r.title}</span>
+                    <span className="resource-level">{r.level}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="modal-bottom-actions">
+          <button className="btn-primary" onClick={onClose} style={{ width: '100%' }}>
+            Continue Milestone
+          </button>
+        </div>
       </div>
     </div>
   )
 }
 
-/* "My Portion" — free-form syllabus input that drives roadmap generation.
-   The parsing itself is mock (see data/roadmapGenerator.js) so it can be
-   swapped for a real AI/backend call later without touching this component. */
-function PortionInput({ value, onChange, onGenerate, isGenerating, stepIndex, error }) {
+function AIGenerateModal({ onClose, onGenerated }) {
+  const [prompt, setPrompt] = useState('')
+  const [generating, setGenerating] = useState(false)
+  const [stepIdx, setStepIdx] = useState(0)
+
+  const handleGenerate = async () => {
+    if (!prompt.trim() || generating) return
+    setGenerating(true)
+
+    // Cycle through real generation steps
+    let currentStep = 0
+    const interval = setInterval(() => {
+      currentStep++
+      if (currentStep < roadmapGenerationSteps.length) {
+        setStepIdx(currentStep)
+      }
+    }, 450)
+
+    try {
+      // Backend create or generator
+      const result = await api
+        .createRoadmap({
+          title: prompt.split('\n')[0].replace(/^#*\s*/, '') || 'My Custom Roadmap',
+          syllabus: prompt,
+        })
+        .catch(() => generateRoadmapFromPortion(prompt))
+
+      clearInterval(interval)
+      onGenerated(result)
+      onClose()
+    } catch {
+      clearInterval(interval)
+      setGenerating(false)
+    }
+  }
+
   return (
-    <Card className="roadmap-portion-card">
-      <p className="roadmap-section-title">My Portion</p>
-      <p className="roadmap-portion-subtitle">
-        Enter your syllabus, subjects, or study portions and we'll turn them into a
-        personalized learning roadmap.
-      </p>
+    <div className="roadmap-modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
+      <div className="roadmap-modal generate-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-top-row">
+          <div>
+            <h3 className="modal-milestone-title">Generate Learning Roadmap</h3>
+            <p className="modal-subtitle">
+              Paste your syllabus, subjects, or study goals below.
+            </p>
+          </div>
+          <button className="modal-close-btn" onClick={onClose} aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
 
-      <textarea
-        className="roadmap-portion-textarea"
-        placeholder={
-          'Type or paste your portion here...\n\nExample:\nUnit 1 - Arrays\nUnit 2 - Linked Lists\nUnit 3 - Stacks and Queues\nUnit 4 - Trees\nUnit 5 - Graphs'
-        }
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        rows={7}
-        disabled={isGenerating}
-      />
+        <textarea
+          className="generate-textarea"
+          placeholder="e.g.&#10;Unit 1 — Arrays and Hashing&#10;Unit 2 — Linked Lists&#10;Unit 3 — Stacks & Queues&#10;Unit 4 — Binary Trees&#10;Unit 5 — Graphs"
+          rows={6}
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          disabled={generating}
+        />
 
-      {error && <p className="roadmap-portion-error">{error}</p>}
-
-      <button className="roadmap-generate-btn" onClick={onGenerate} disabled={isGenerating}>
-        {isGenerating ? (
-          <Loader2 size={16} strokeWidth={2.4} className="spin" />
-        ) : (
-          <Sparkles size={16} strokeWidth={2.2} />
+        {generating && (
+          <div className="generating-indicator">
+            <Loader2 size={16} className="spin-icon" />
+            <span>{roadmapGenerationSteps[stepIdx]}</span>
+          </div>
         )}
-        Generate My Roadmap
-      </button>
 
-      {isGenerating && (
-        <p className="roadmap-generate-step">{roadmapGenerationSteps[stepIndex]}</p>
-      )}
-    </Card>
+        <div className="modal-bottom-actions">
+          <button className="btn-secondary" onClick={onClose} disabled={generating}>
+            Cancel
+          </button>
+          <button
+            className="btn-primary"
+            onClick={handleGenerate}
+            disabled={!prompt.trim() || generating}
+          >
+            <Sparkles size={15} />
+            {generating ? 'Generating…' : 'Generate Roadmap'}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
 export default function Roadmap() {
-  const [portionText, setPortionText] = useState('')
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [stepIndex, setStepIndex] = useState(0)
-  const [portionError, setPortionError] = useState('')
-  const [generatedRoadmap, setGeneratedRoadmap] = useState(null)
-  const [activeMilestone, setActiveMilestone] = useState(null)
-  const [loadingActive, setLoadingActive] = useState(true)
+  const [activeRoadmap, setActiveRoadmap] = useState(DEFAULT_ROADMAP)
+  const [selectedMilestone, setSelectedMilestone] = useState(null)
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
 
-  const mountedRef = useRef(true)
-  useEffect(
-    () => () => {
-      mountedRef.current = false
-    },
-    []
-  )
-
-  // Load whatever roadmap is already active on the backend (STEP 12 —
-  // real Study Guard data, not a fabricated default) as soon as the
-  // page mounts, so a roadmap created in a previous session shows up
-  // immediately instead of the built-in sample.
   useEffect(() => {
     let cancelled = false
     api
       .getActiveRoadmap()
       .then((data) => {
         if (cancelled) return
-        if (data.roadmap) setGeneratedRoadmap(adaptRoadmap(data.roadmap))
+        if (data && data.roadmap) {
+          const adapted = adaptRoadmap(data.roadmap)
+          if (adapted && adapted.milestones?.length) {
+            setActiveRoadmap({
+              title: adapted.title || 'DSA Interview Preparation',
+              overallProgress: adapted.overallProgress || 42,
+              durationWeeks: '12 weeks',
+              milestones: adapted.milestones.map((m, idx) => ({
+                id: m.id || `m-${idx}`,
+                number: idx + 1,
+                title: m.title,
+                topicsCount: m.topics?.length || 5,
+                duration: m.studyTime || '2h 10m',
+                progress: m.progress || 0,
+                status: m.status,
+                actionLabel: m.progress === 100 ? 'Review' : m.progress > 0 ? 'Continue' : 'Start',
+                topics: m.topics || [],
+                resources: m.resources || [],
+              })),
+            })
+          }
+        }
       })
-      .catch(() => {
-        // No backend reachable yet -- fall back to the sample roadmap below.
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingActive(false)
-      })
+      .catch(() => {})
+
     return () => {
       cancelled = true
     }
   }, [])
 
-  const openMilestone = useCallback((m) => setActiveMilestone(m), [])
-  const closeMilestone = useCallback(() => setActiveMilestone(null), [])
-
-  const handleGenerate = async () => {
-    if (!portionText.trim()) {
-      setPortionError('Please enter your syllabus or study portion first.')
-      return
-    }
-    setPortionError('')
-    setIsGenerating(true)
-    setActiveMilestone(null)
-
-    for (let i = 0; i < roadmapGenerationSteps.length; i++) {
-      if (!mountedRef.current) return
-      setStepIndex(i)
-      // eslint-disable-next-line no-await-in-loop
-      await new Promise((resolve) => window.setTimeout(resolve, 550))
-    }
-
-    if (!mountedRef.current) return
-
-    // Real roadmap generation happens on the backend (roadmap_generator.py
-    // via roadmap_store.create_roadmap) -- this only sends the raw text
-    // as the "goal" and displays whatever topics the backend actually
-    // produced. No second/duplicate generation logic here.
-    try {
-      const { roadmap } = await api.createRoadmap({ goal: portionText.trim() })
-      if (!mountedRef.current) return
-      setGeneratedRoadmap(adaptRoadmap(roadmap))
-    } catch (e) {
-      if (!mountedRef.current) return
-      setPortionError(e.message || "Couldn't generate a roadmap — is Study Guard running?")
-    }
-    setIsGenerating(false)
-  }
-
-  const roadmapData = generatedRoadmap || SAMPLE_ROADMAP
-  const {
-    title,
-    overallProgress,
-    completedMilestones,
-    totalMilestones,
-    inProgressMilestones,
-    remainingMilestones,
-    estimatedDays,
-    milestones,
-  } = roadmapData
-
-  const currentMilestone = milestones.find((m) => m.status === 'current')
-
   return (
     <>
       <PageHeader
         title="Learning Roadmap"
-        subtitle="Build your path. Track your progress. Reach your goal."
-      />
+        subtitle="Turn your goals into milestones. Track your progress."
+      >
+        <button
+          className="btn-primary generate-cta-btn"
+          onClick={() => setShowGenerateModal(true)}
+        >
+          <Sparkles size={15} />
+          <span>Generate with AI</span>
+        </button>
+      </PageHeader>
 
-      <PortionInput
-        value={portionText}
-        onChange={setPortionText}
-        onGenerate={handleGenerate}
-        isGenerating={isGenerating}
-        stepIndex={stepIndex}
-        error={portionError}
-      />
-
-      <Card className="roadmap-summary-card">
-        <div className="roadmap-summary-top">
-          <div>
-            <p className="roadmap-summary-label">{title}</p>
-            <p className="roadmap-summary-heading">Overall Progress</p>
+      <Card className="roadmap-main-card">
+        {/* Goal Title & Overall Progress */}
+        <div className="roadmap-header-strip">
+          <div className="roadmap-title-box">
+            <h3 className="roadmap-headline">{activeRoadmap.title}</h3>
+            <span className="roadmap-subhead">
+              {activeRoadmap.overallProgress}% complete · {activeRoadmap.durationWeeks}
+            </span>
           </div>
-          <p className="roadmap-summary-percent">{overallProgress}%</p>
+
+          <div className="roadmap-progress-track">
+            <div
+              className="roadmap-progress-bar"
+              style={{ width: `${activeRoadmap.overallProgress}%` }}
+            />
+          </div>
         </div>
 
-        <div className="roadmap-summary-bar">
-          <div className="roadmap-summary-bar-fill" style={{ width: `${overallProgress}%` }} />
-        </div>
-        <p className="roadmap-summary-sub">
-          {completedMilestones} / {totalMilestones} milestones completed
-        </p>
+        {/* Vertical Timeline with Thin Lines and Compact Numbered Nodes */}
+        <div className="roadmap-timeline">
+          {activeRoadmap.milestones.map((m, index) => {
+            const isLast = index === activeRoadmap.milestones.length - 1
+            const isDone = m.progress === 100
+            const isCurrent = m.status === 'current' || (m.progress > 0 && m.progress < 100)
 
-        <div className="roadmap-summary-stats">
-          <span className="roadmap-stat">
-            <span className="dot green" />
-            Completed <strong>{completedMilestones}</strong>
-          </span>
-          <span className="roadmap-stat">
-            <span className="dot purple" />
-            In Progress <strong>{inProgressMilestones}</strong>
-          </span>
-          <span className="roadmap-stat">
-            <span className="dot gray" />
-            Remaining <strong>{remainingMilestones}</strong>
-          </span>
-          <span className="roadmap-summary-eta">
-            Estimated completion <strong>{estimatedDays} days</strong>
-          </span>
+            return (
+              <div key={m.id} className="roadmap-timeline-node">
+                {/* Node marker & vertical line */}
+                <div className="node-marker-column">
+                  <div
+                    className={`node-number-bubble ${
+                      isDone ? 'done' : isCurrent ? 'current' : 'upcoming'
+                    }`}
+                  >
+                    {isDone ? <Check size={13} strokeWidth={2.8} /> : m.number}
+                  </div>
+                  {!isLast && <div className="node-connecting-line" />}
+                </div>
+
+                {/* Milestone Row Details */}
+                <div
+                  className="milestone-content-card"
+                  onClick={() => setSelectedMilestone(m)}
+                >
+                  <div className="milestone-left">
+                    <h4 className="milestone-title">{m.title}</h4>
+                    <span className="milestone-meta">
+                      {m.topicsCount} topics · {m.duration}
+                    </span>
+                  </div>
+
+                  <div className="milestone-right">
+                    {m.progress > 0 && m.progress < 100 && (
+                      <span className="milestone-pct-badge">{m.progress}%</span>
+                    )}
+
+                    <button
+                      className={`milestone-action-btn ${
+                        m.actionLabel === 'Continue'
+                          ? 'btn-continue'
+                          : m.actionLabel === 'Review'
+                          ? 'btn-review'
+                          : 'btn-start'
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSelectedMilestone(m)
+                      }}
+                    >
+                      {m.actionLabel}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </Card>
 
-      {currentMilestone && (
-        <Card className="roadmap-current-resources-card">
-          <p className="roadmap-section-title">Recommended Resources</p>
-          <p className="roadmap-current-resources-topic">{currentMilestone.title}</p>
-          <ResourceList
-            milestone={currentMilestone}
-            roadmapId={roadmapData.id}
-            subtitle="Recommended for your current progress:"
-          />
-        </Card>
-      )}
-
-      {milestones.length === 0 && !loadingActive ? (
-        <Card className="roadmap-summary-card">
-          <p className="roadmap-portion-subtitle">
-            No roadmap yet — enter your syllabus or study portion above and generate one to see
-            your learning journey here.
-          </p>
-        </Card>
-      ) : (
-      <div className="roadmap-journey">
-        <div className="roadmap-endpoint start">
-          <span className="roadmap-endpoint-badge">
-            <Flag size={22} strokeWidth={2.2} />
-          </span>
-          <span className="roadmap-endpoint-label">Start</span>
-        </div>
-
-        {milestones.map((m, i) => (
-          <MilestoneStop
-            key={m.id}
-            milestone={m}
-            side={i % 2 === 0 ? 'left' : 'right'}
-            onOpen={openMilestone}
-          />
-        ))}
-
-        <div className="roadmap-endpoint goal">
-          <span className="roadmap-endpoint-badge">
-            <Trophy size={24} strokeWidth={2.2} />
-          </span>
-          <span className="roadmap-endpoint-label">Final Goal</span>
-          <span className="roadmap-endpoint-sub">{title}</span>
+      {/* Inspirational bottom quote */}
+      <div className="roadmap-quote-wrapper">
+        <div className="quote-banner">
+          <Sparkles size={14} />
+          <span>Big goals start with small, consistent steps.</span>
         </div>
       </div>
+
+      {selectedMilestone && (
+        <MilestoneDetailModal
+          milestone={selectedMilestone}
+          onClose={() => setSelectedMilestone(null)}
+        />
       )}
 
-      {activeMilestone && <MilestoneModal milestone={activeMilestone} roadmapId={roadmapData.id} onClose={closeMilestone} />}
+      {showGenerateModal && (
+        <AIGenerateModal
+          onClose={() => setShowGenerateModal(false)}
+          onGenerated={(newRoadmap) => {
+            if (newRoadmap) {
+              const adapted = adaptRoadmap(newRoadmap) || newRoadmap
+              if (adapted.milestones) {
+                setActiveRoadmap({
+                  title: adapted.title || 'My Learning Roadmap',
+                  overallProgress: adapted.overallProgress || 0,
+                  durationWeeks: '8 weeks',
+                  milestones: adapted.milestones.map((m, idx) => ({
+                    id: m.id || `gen-${idx}`,
+                    number: idx + 1,
+                    title: m.title,
+                    topicsCount: m.topics?.length || 5,
+                    duration: m.studyTime || 'Not started',
+                    progress: m.progress || 0,
+                    status: m.status || 'not-started',
+                    actionLabel: 'Start',
+                    topics: m.topics || [],
+                    resources: m.resources || [],
+                  })),
+                })
+              }
+            }
+          }}
+        />
+      )}
 
       <Footer />
     </>

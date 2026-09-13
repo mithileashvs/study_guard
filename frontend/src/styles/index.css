@@ -1,41 +1,81 @@
 :root {
-  /* Backgrounds */
-  --bg-app: #eef0f8;
-  --bg-sidebar: #ffffff;
-  --bg-card: #ffffff;
-  --bg-card-soft: #f7f7fc;
+  /* Surface & Backgrounds */
+  --bg-app: #F7F8FA;
+  --bg-sidebar: #101522;
+  --bg-sidebar-hover: rgba(255, 255, 255, 0.06);
+  --bg-sidebar-active: #635BFF;
+  --bg-card: #FFFFFF;
+  --bg-card-subtle: #FAFAFB;
+  --bg-card-hover: #F9FAFB;
 
-  /* Text */
-  --text-primary: #1c2340;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
+  /* Text & Contrast */
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  --text-inverse: #FFFFFF;
+  --text-sidebar-nav: #94A3B8;
+  --text-sidebar-nav-hover: #FFFFFF;
 
-  /* Accent */
-  --accent-purple: #7c6ff0;
-  --accent-purple-light: #ece9fd;
-  --accent-purple-dark: #5b4fd6;
+  /* Brand Accents */
+  --accent-purple: #635BFF;
+  --accent-purple-hover: #5148E8;
+  --accent-purple-light: #F0EFFF;
+  --accent-purple-border: #D7D4FF;
+  --accent-purple-dark: #473DC6;
 
-  /* Semantic */
-  --color-green: #22c58b;
-  --color-green-light: #e4f9f0;
-  --color-red: #ef5c7c;
-  --color-red-light: #fdecf0;
-  --color-blue: #4d8bf0;
-  --color-blue-light: #e9f1fe;
-  --color-orange: #f6a531;
-  --color-orange-light: #fef3e2;
-  --color-gray-light: #eceef3;
+  /* Semantic System */
+  --color-success: #10B981;
+  --color-success-light: #ECFDF5;
+  --color-success-border: #A7F3D0;
+  
+  --color-warning: #F59E0B;
+  --color-warning-light: #FFFBEB;
+  --color-warning-border: #FDE68A;
+  
+  --color-danger: #EF4444;
+  --color-danger-light: #FEF2F2;
+  --color-danger-border: #FECACA;
+  
+  --color-info: #3B82F6;
+  --color-info-light: #EFF6FF;
+
+  /* Backwards compatibility helper tokens */
+  --color-green: var(--color-success);
+  --color-green-light: var(--color-success-light);
+  --color-red: var(--color-danger);
+  --color-red-light: var(--color-danger-light);
+  --color-blue: var(--color-info);
+  --color-blue-light: var(--color-info-light);
+  --color-orange: var(--color-warning);
+  --color-orange-light: var(--color-warning-light);
+  --color-gray-light: #F3F4F6;
+
+  /* Borders & Dividers */
+  --border-subtle: #E5E7EB;
+  --border-muted: #F3F4F6;
+  --border-focus: #635BFF;
+  --border-sidebar: rgba(255, 255, 255, 0.08);
+
+  /* Geometry & Radius */
+  --radius-xl: 14px;
+  --radius-lg: 12px;
+  --radius-md: 10px;
+  --radius-sm: 8px;
+  --radius-pill: 9999px;
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px rgba(17, 24, 39, 0.03);
+  --shadow-card: 0 1px 3px rgba(17, 24, 39, 0.04), 0 1px 2px rgba(17, 24, 39, 0.02);
+  --shadow-card-hover: 0 4px 12px rgba(17, 24, 39, 0.06);
+  --shadow-modal: 0 16px 40px rgba(17, 24, 39, 0.16);
 
   /* Layout */
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --radius-sm: 10px;
-  --shadow-card: 0 4px 20px rgba(35, 40, 80, 0.06);
-  --shadow-card-hover: 0 8px 28px rgba(35, 40, 80, 0.1);
-  --sidebar-width: 272px;
+  --sidebar-width: 250px;
+  --sidebar-width-collapsed: 72px;
 
-  --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  /* Typography */
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 * {
@@ -46,12 +86,11 @@
 
 html, body {
   height: 100%;
-}
-
-body {
   background: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -79,17 +118,17 @@ ul {
 
 ::selection {
   background: var(--accent-purple-light);
-  color: var(--accent-purple-dark);
+  color: var(--accent-purple);
 }
 
-/* Scrollbar */
+/* Restrained modern scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d8dae8;
-  border-radius: 8px;
+  background: #D1D5DB;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -98,25 +137,38 @@ ul {
 :focus-visible {
   outline: 2px solid var(--accent-purple);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
+/* App Shell */
 .app-shell {
   display: flex;
   min-height: 100vh;
+  background: var(--bg-app);
 }
 
 .main-area {
   flex: 1;
   min-width: 0;
-  padding: 28px 36px 40px;
+  padding: 32px 40px 48px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 24px;
+  max-width: 1400px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 1024px) {
   .main-area {
-    padding: 20px 16px 32px;
+    padding: 24px 24px 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    flex-direction: column;
+  }
+  .main-area {
+    padding: 16px 16px 28px;
+    gap: 18px;
   }
 }
